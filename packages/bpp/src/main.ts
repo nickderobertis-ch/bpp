@@ -1,18 +1,19 @@
 import { debug, getInput, info, setFailed, warning } from "@actions/core"
 import {
   BrowserName,
-  type ChromeOptions,
   type CommonOptions,
   type EdgeOptions,
   type FirefoxOptions,
   type IteroOptions,
   type OperaOptions,
-  submitChrome,
   submitEdge,
   submitFirefox,
   submitItero,
   supportedBrowserSet
 } from "@plasmohq/bms"
+
+import { isObjectWithKey } from "./utils"
+import { type ChromeOptions, submitChrome } from "./vendor/bms/chrome"
 
 type Keys = {
   [BrowserName.Chrome]: ChromeOptions
@@ -27,17 +28,6 @@ const tag = (prefix: string) => `${prefix.padEnd(9)} |`
 const getBundleFiles = (opt: CommonOptions) => opt.zip || opt.file
 
 const hasBundleFile = (opt: CommonOptions) => !!getBundleFiles(opt)
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object"
-}
-
-function isObjectWithKey<T extends string>(
-  value: unknown,
-  key: T
-): value is Record<T, unknown> {
-  return isObject(value) && key in value
-}
 
 function getDetailedErrorMessage(error: unknown): string {
   if (isObjectWithKey(error, "request")) {
