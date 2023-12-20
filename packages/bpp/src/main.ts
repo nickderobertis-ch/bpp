@@ -40,17 +40,17 @@ function isObjectWithKey<T extends string>(
 }
 
 function getDetailedErrorMessage(error: unknown): string {
-  if (isObjectWithKey(error, "response")) {
+  if (isObjectWithKey(error, "request")) {
     const details = {
       message: isObjectWithKey(error, "message") ? error.message : undefined,
-      body: isObjectWithKey(error.response, "body")
-        ? error.response.body
-        : undefined,
-      requestOptions:
-        isObjectWithKey(error.response, "request") &&
-        isObjectWithKey(error.response.request, "options")
-          ? error.response.request.options
-          : undefined
+      body:
+        isObjectWithKey(error, "response") &&
+        isObjectWithKey(error.response, "body")
+          ? error.response.body
+          : undefined,
+      requestOptions: isObjectWithKey(error.request, "options")
+        ? error.request.options
+        : undefined
     }
     return JSON.stringify(details)
   }
