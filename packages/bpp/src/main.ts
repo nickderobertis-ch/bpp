@@ -28,6 +28,38 @@ const getBundleFiles = (opt: CommonOptions) => opt.zip || opt.file
 
 const hasBundleFile = (opt: CommonOptions) => !!getBundleFiles(opt)
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object"
+}
+
+function isObjectWithKey<T extends string>(
+  value: unknown,
+  key: T
+): value is Record<T, unknown> {
+  return isObject(value) && key in value
+}
+
+function getDetailedErrorMessage(error: unknown): string {
+  if (isObjectWithKey(error, "response")) {
+    const details = {
+      message: isObjectWithKey(error, "message") ? error.message : undefined,
+      body: isObjectWithKey(error.response, "body")
+        ? error.response.body
+        : undefined,
+      requestOptions:
+        isObjectWithKey(error.response, "request") &&
+        isObjectWithKey(error.response.request, "options")
+          ? error.response.request.options
+          : undefined
+    }
+    return JSON.stringify(details)
+  }
+  if (error instanceof Error) {
+    return error.stack || error.message
+  }
+  return JSON.stringify(error)
+}
+
 async function run(): Promise<void> {
   try {
     info(`🟣 Plasmo Browser Platform Publish v3`)
@@ -118,7 +150,9 @@ async function run(): Promise<void> {
 
     results.forEach((result, index) => {
       if (result.status === "rejected") {
-        setFailed(`${tag("🔴 ERROR")} ${result.reason}`)
+        setFailed(
+          `${tag("🔴 ERROR")} ${getDetailedErrorMessage(result.reason)}`
+        )
       } else if (result.value) {
         info(`${tag("🟢 DONE")} ${browserEntries[index]} submission successful`)
       }
